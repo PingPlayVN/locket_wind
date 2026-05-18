@@ -1,0 +1,12 @@
+{
+  "name": "locket-add-friend-tool",
+  "version": "1.0.0",
+  "description": "Tool kết bạn Locket hàng loạt",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^30.0.0"
+  }
+}

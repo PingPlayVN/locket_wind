@@ -1,0 +1,116 @@
+/* [VIBECODE-PROJECT-NOTE]: MODULE STYLES - Design System (Modern Dark Theme Locket) */
+
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #090909; color: #fff; margin: 0; padding: 20px; font-size: 14px; display: flex; align-items: center; justify-content: center; min-height: 100vh; box-sizing: border-box; }
+.container { width: 100%; max-width: 450px; }
+.card { background: #151515; border: 1px solid #262626; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.7); position: relative; overflow: hidden; }
+
+h2 { margin: 0 0 25px 0; color: #FFD700; text-align: center; text-transform: uppercase; letter-spacing: 1.5px; font-size: 18px; }
+
+input { width: 100%; padding: 14px; border: 1px solid #333; background: #1e1e1e; color: #fff; border-radius: 10px; box-sizing: border-box; margin-bottom: 15px; font-size: 14px; outline: none; transition: 0.3s; }
+input:focus { border-color: #FFD700; background: #252525; box-shadow: 0 0 10px rgba(255, 215, 0, 0.1); }
+
+button { width: 100%; padding: 14px; background: #FFD700; color: #000; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 14px; letter-spacing: 0.5px; transition: 0.2s; }
+button:hover { opacity: 0.9; transform: translateY(-1px); }
+button:active { transform: translateY(1px); }
+button:disabled { background: #333; color: #666; cursor: not-allowed; transform: none; }
+
+.profile-container { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.avatar-wrapper { position: relative; width: 110px; height: 110px; margin-bottom: 20px; }
+.avatar { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid #FFD700; background: #222; box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); }
+.badge-gold { position: absolute; bottom: 0; right: 0; background: linear-gradient(45deg, #FFD700, #FFA500); color: #000; font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 10px; border: 2px solid #151515; box-shadow: 0 2px 5px rgba(0,0,0,0.5); display: none; }
+
+.full-name { font-size: 20px; font-weight: bold; color: #fff; margin: 0 0 5px 0; }
+.username { font-size: 14px; color: #FFD700; margin: 0 0 25px 0; font-weight: 500; }
+
+.info-box { width: 100%; background: #1a1a1a; border: 1px solid #262626; border-radius: 12px; padding: 15px; margin-bottom: 25px; box-sizing: border-box; }
+.info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #262626; font-size: 13px; }
+.info-row:last-child { border-bottom: none; }
+.info-label { color: #888; }
+.info-value { color: #fff; font-weight: 500; font-family: monospace; }
+
+.btn-logout { background: transparent; color: #ff4444; border: 1px solid #ff4444; margin-top: 10px; }
+.btn-logout:hover { background: rgba(255, 68, 68, 0.1); color: #ff4444; }
+
+#statusMessage { text-align: center; color: #aaa; font-size: 13px; margin-top: 10px; font-style: italic; }
+
+/* --- CSS THÀNH PHẦN KẾT QUẢ TÌM KIẾM BẠN BÈ --- */
+.friend-result-card { 
+    display: flex; 
+    align-items: center; 
+    gap: 15px; 
+    background: #1e1e1e; 
+    border: 1px solid #333; 
+    padding: 15px; 
+    border-radius: 12px; 
+    animation: fadeIn 0.3s ease;
+}
+
+.friend-avatar { 
+    width: 60px; 
+    height: 60px; 
+    border-radius: 50%; 
+    object-fit: cover; 
+    background: #111;
+}
+
+.friend-info { 
+    display: flex; 
+    flex-direction: column; 
+    text-align: left; 
+    flex: 1;
+}
+
+.friend-name { 
+    font-size: 15px; 
+    font-weight: bold; 
+    color: #fff; 
+    display: flex; 
+    align-items: center;
+}
+
+.friend-username { 
+    font-size: 13px; 
+    color: #FFD700; 
+    margin-top: 2px; 
+    font-weight: 500;
+}
+
+.friend-uid { 
+    font-size: 11px; 
+    color: #777; 
+    font-family: monospace; 
+    margin-top: 5px; 
+    word-break: break-all;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Nút thêm bạn bè trong card tìm kiếm */
+.btn-add-friend {
+    padding: 8px 14px;
+    background: #FFD700;
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    text-transform: none; /* Bỏ in hoa cho mềm mại */
+}
+
+.btn-add-friend:hover:not(:disabled) {
+    transform: scale(1.05);
+    background: #e6c200;
+}
+
+.btn-add-friend:disabled {
+    background: #333;
+    color: #888;
+    cursor: not-allowed;
+    transform: none;
+}

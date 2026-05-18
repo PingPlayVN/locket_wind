@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Locket Profile Dashboard 💎</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="container">
+    <div id="loginCard" class="card">
+        <h2>🔑 Đăng Nhập Locket</h2>
+        <input type="email" id="email" placeholder="Nhập Email của bạn">
+        <input type="password" id="password" placeholder="Nhập Mật khẩu">
+        <button id="btnLogin">Đăng Nhập & Tải Hồ Sơ</button>
+        <div id="loginMsg"></div>
+    </div>
+
+    <div id="profileCard" class="card" style="display: none;">
+        <h2>💎 Hồ Sơ Tài Khoản</h2>
+        
+        <div class="profile-container">
+            <div class="avatar-wrapper">
+                <img id="userAvatar" src="" class="avatar" alt="Avatar">
+                <div id="goldBadge" class="badge-gold">GOLD</div>
+            </div>
+            
+            <div class="full-name" id="userFullName">Đang tải...</div>
+            <div class="username" id="userUsername">@username</div>
+            
+            <div class="info-box">
+                <div class="info-row">
+                    <span class="info-label">Mã định danh (UID)</span>
+                    <span class="info-value" id="userUid" style="color: #42a5f5; font-size: 12px;">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Họ (Last Name)</span>
+                    <span class="info-value" id="userLastName">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Tên (First Name)</span>
+                    <span class="info-value" id="userFirstName">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Gói Tài Khoản</span>
+                    <span class="info-value" id="userBadge" style="text-transform: uppercase;">Tiêu chuẩn</span>
+                </div>
+            </div>
+            
+            <div id="statusMessage"></div>
+            
+            <button onclick="location.reload()" class="btn-logout">Đăng Xuất</button>
+        </div>
+    </div>
+    <div id="friendsSection" class="card" style="display: none; margin-top: 20px;">
+        <h2>👥 Tìm Kiếm Bạn Bè</h2>
+        
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <input type="text" id="searchUsername" placeholder="Nhập username cần tìm (Ví dụ: isaac...)" style="margin-bottom: 0;">
+            <button id="btnSearchFriend" style="width: auto; white-space: nowrap; padding: 0 20px;">Tìm Kiếm</button>
+        </div>
+        
+        <div id="searchResultBox" style="background: #1a1a1a; border: 1px solid #262626; border-radius: 12px; padding: 15px; min-height: 50px; box-sizing: border-box;">
+            <div style="text-align: center; color: #666; font-size: 13px;">Kết quả tìm kiếm sẽ hiển thị ở đây</div>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="./js/app.js"></script>
+
+</body>
+</html>
