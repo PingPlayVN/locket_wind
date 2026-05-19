@@ -23,19 +23,31 @@
         <div class="viewfinder-container">
             <video id="cameraVideo" class="camera-video" autoplay playsinline></video>
             <img id="previewImage" class="preview-image" style="display: none;">
+            
+            <div id="customColorPanel" class="custom-color-panel" style="display: none;">
+                <div style="display: flex; gap: 15px; margin-bottom: 10px; justify-content: center;">
+                    <input type="color" id="vibeColor1" class="vibe-color-input" value="#FF007F">
+                    <input type="color" id="vibeColor2" class="vibe-color-input" value="#7F00FF">
+                    <input type="color" id="vibeColor3" class="vibe-color-input" value="#00FFFF">
+                </div>
+                <label style="display: flex; align-items: center; justify-content: center; gap: 8px; color: #fff; font-size: 14px; cursor: pointer;">
+                    <input type="checkbox" id="useCustomVibe" style="width: 18px; height: 18px; margin: 0; accent-color: #FFD700;"> 
+                    Bật nền Gradient
+                </label>
+            </div>
 
             <div id="captionOverlay" class="caption-overlay" style="display: none;">
-                <input type="text" id="modalCaptionInput" placeholder="Thêm tin nhắn..." autocomplete="off">
+                
+                <button id="btnToggleVibes" class="btn-toggle-vibes" style="display: none;">Aa</button>
+                
+                <input type="text" id="modalCaptionInput" placeholder="Thêm tin nhắn (có thể để trống)..." autocomplete="off">
                 <button id="btnConfirmSend" class="btn-send-moment">➤</button>
             </div>
         </div>
 
         <div id="bottomControls" class="bottom-controls-ios">
-            
             <button id="btnGallery" class="btn-icon-ios btn-gallery-ios"></button>
-            
             <button id="btnCapture" class="btn-capture-ios"></button>
-            
             <button id="btnFlipCamera" class="btn-icon-ios btn-flip-ios"></button> 
         </div>
 
@@ -66,17 +78,14 @@
         <div class="modal-content">
             <button class="btn-close-modal" id="btnCloseProfile">✕</button>
             <h3 style="text-align: center; color:#FFD700; margin-bottom: 20px;">Hồ Sơ Của Bạn</h3>
-            
             <div style="text-align:center; margin-bottom: 20px;">
                 <img id="userAvatar" src="" style="width:80px; height:80px; border-radius:50%; border: 2px solid #FFD700;">
                 <h3 id="userFullName" style="margin-top:10px;">Đang tải...</h3>
                 <p id="userUsername" style="color:#888;">@username</p>
             </div>
-            
             <div class="info-row"><span class="info-label">UID</span><span id="userUid">-</span></div>
             <div class="info-row"><span class="info-label">Hạng</span><span id="userBadge" style="color:#FFD700;">Tiêu chuẩn</span></div>
             <div id="statusMessage" style="text-align: center; font-size: 12px; margin-top: 10px; color: #00e676;"></div>
-            
             <button onclick="location.reload()" class="btn-primary" style="background:#333; color:#fff; margin-top:20px;">Đăng Xuất</button>
         </div>
     </div>
@@ -85,22 +94,19 @@
         <div class="modal-content">
             <button class="btn-close-modal" id="btnCloseFriends">✕</button>
             <h3 style="text-align: center; margin-bottom: 20px;">Thêm Bạn Bè</h3>
-            
             <div class="search-row">
                 <input type="text" id="searchUsername" placeholder="Nhập username...">
                 <button id="btnSearchFriend" class="btn-primary" style="background: #333; color: #fff;">Tìm</button>
             </div>
-            
             <div id="searchResultBox"></div>
-
             <hr style="border-color: #262626; margin: 25px 0 15px 0;">
             <h4 style="color: #FFD700; font-size: 14px; margin-bottom: 15px;">👥 Danh sách của bạn</h4>
-            
             <div id="myFriendsList" style="max-height: 40vh; overflow-y: auto;">
                 <div style="text-align:center; color:#666; font-size:13px; padding: 20px;">Danh sách bạn bè sẽ hiện ở đây</div>
             </div>
         </div>
     </div>
+
     <div id="uploadProgressOverlay" class="modal-overlay" style="z-index: 1000; align-items: center; justify-content: center;">
         <div style="background: rgba(20,20,20,0.95); padding: 30px; border-radius: 20px; text-align: center; width: 80%; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
             <div id="uploadStatusText" style="color: #FFD700; font-weight: bold; margin-bottom: 15px; font-size: 16px;">Đang chuẩn bị... 0%</div>
