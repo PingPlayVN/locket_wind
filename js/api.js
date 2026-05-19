@@ -86,16 +86,18 @@ export function uploadPhotoToFirebaseWithProgress(blob, onProgress) {
         let photoId = '';
         for (let i = 0; i < 20; i++) photoId += chars.charAt(Math.floor(Math.random() * chars.length));
         
-        const path = `users/${session.localId}/moments/thumbnails/${photoId}.webp`;
+        // SỬA 1: Đổi đuôi file thành .jpeg
+        const path = `users/${session.localId}/moments/thumbnails/${photoId}.jpeg`;
         const encodedPath = encodeURIComponent(path);
         const url = `https://firebasestorage.googleapis.com/v0/b/locket-img/o?uploadType=media&name=${encodedPath}`;
 
         const xhr = new XMLHttpRequest();
         xhr.open('POST', url, true);
         xhr.setRequestHeader('Authorization', `Firebase ${session.idToken}`);
-        xhr.setRequestHeader('Content-Type', 'image/webp');
+        
+        // SỬA 2: Đổi Content-Type thành image/jpeg
+        xhr.setRequestHeader('Content-Type', 'image/jpeg');
 
-        // Bắt sự kiện tải lên để báo % tiến trình
         xhr.upload.onprogress = (e) => {
             if (e.lengthComputable) {
                 const percent = Math.round((e.loaded / e.total) * 100);
@@ -109,10 +111,10 @@ export function uploadPhotoToFirebaseWithProgress(blob, onProgress) {
                 const thumbnailUrl = `https://firebasestorage.googleapis.com:443/v0/b/locket-img/o/${encodedPath}?alt=media&token=${data.downloadTokens}`;
                 resolve(thumbnailUrl);
             } else {
-                reject(new Error("Lỗi upload ảnh"));
+                reject(new Error("Lỗi upload ảnh (Mã: " + xhr.status + ")"));
             }
         };
-        xhr.onerror = () => reject(new Error("Lỗi kết nối mạng"));
+        xhr.onerror = () => reject(new Error("Lỗi kết nối mạng! Vui lòng kiểm tra 3G/Wifi."));
         xhr.send(blob);
     });
 }

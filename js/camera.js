@@ -75,10 +75,22 @@ function capturePhoto() {
     const dom = getDom();
     if (!dom.video.videoWidth) return;
     
-    dom.canvas.width = dom.video.videoWidth;
-    dom.canvas.height = dom.video.videoHeight;
-    dom.canvas.getContext('2d').drawImage(dom.video, 0, 0, dom.canvas.width, dom.canvas.height);
-    dom.canvas.toBlob((blob) => { currentBlob = blob; }, 'image/webp', 0.9);
+    // Thuật toán: Nếu ảnh to hơn Full HD (1080p), tự động thu nhỏ lại để chống tràn RAM trên điện thoại
+    const MAX_WIDTH = 1920; 
+    let width = dom.video.videoWidth;
+    let height = dom.video.videoHeight;
+
+    if (width > MAX_WIDTH) {
+        height = Math.floor(height * (MAX_WIDTH / width));
+        width = MAX_WIDTH;
+    }
+
+    dom.canvas.width = width;
+    dom.canvas.height = height;
+    dom.canvas.getContext('2d').drawImage(dom.video, 0, 0, width, height);
+
+    // ĐỔI SANG JPEG (Tương thích 100% với iPhone/Android) và để chất lượng 0.9 cho nhẹ máy
+    dom.canvas.toBlob((blob) => { currentBlob = blob; }, 'image/jpeg', 0.9);
 
     dom.previewImage.src = dom.canvas.toDataURL('image/jpeg');
     dom.previewImage.style.display = 'block';
@@ -87,7 +99,7 @@ function capturePhoto() {
     dom.captionOverlay.style.display = 'flex'; 
     
     if (dom.btnToggleVibes) dom.btnToggleVibes.style.display = 'block';
-    if (dom.customColorPanel) dom.customColorPanel.style.display = 'none'; // Giấu bảng màu lúc mới chụp
+    if (dom.customColorPanel) dom.customColorPanel.style.display = 'none'; 
     
     dom.sendSheet.style.display = 'flex'; 
     
