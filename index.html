@@ -30,10 +30,13 @@
             </div>
         </div>
 
-        <div id="bottomControls" class="bottom-controls">
-            <button class="btn-icon">🖼️</button>
-            <button id="btnCapture" class="btn-capture"></button>
-            <button class="btn-icon">🔁</button>
+        <div id="bottomControls" class="bottom-controls-ios">
+            
+            <button id="btnGallery" class="btn-icon-ios btn-gallery-ios"></button>
+            
+            <button id="btnCapture" class="btn-capture-ios"></button>
+            
+            <button id="btnFlipCamera" class="btn-icon-ios btn-flip-ios"></button> 
         </div>
 
         <div id="sendSheet" class="send-sheet" style="display: none;">
@@ -88,8 +91,13 @@
                 <button id="btnSearchFriend" class="btn-primary" style="background: #333; color: #fff;">Tìm</button>
             </div>
             
-            <div id="searchResultBox">
-                <div style="text-align:center; color:#666; font-size:13px; padding: 20px;">Nhập tên để tìm kiếm</div>
+            <div id="searchResultBox"></div>
+
+            <hr style="border-color: #262626; margin: 25px 0 15px 0;">
+            <h4 style="color: #FFD700; font-size: 14px; margin-bottom: 15px;">👥 Danh sách của bạn</h4>
+            
+            <div id="myFriendsList" style="max-height: 40vh; overflow-y: auto;">
+                <div style="text-align:center; color:#666; font-size:13px; padding: 20px;">Danh sách bạn bè sẽ hiện ở đây</div>
             </div>
         </div>
     </div>
