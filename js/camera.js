@@ -78,7 +78,7 @@ function capturePhoto() {
     dom.canvas.width = dom.video.videoWidth;
     dom.canvas.height = dom.video.videoHeight;
     dom.canvas.getContext('2d').drawImage(dom.video, 0, 0, dom.canvas.width, dom.canvas.height);
-    dom.canvas.toBlob((blob) => { currentBlob = blob; }, 'image/webp', 0.98);
+    dom.canvas.toBlob((blob) => { currentBlob = blob; }, 'image/webp', 0.9);
 
     dom.previewImage.src = dom.canvas.toDataURL('image/jpeg');
     dom.previewImage.style.display = 'block';
