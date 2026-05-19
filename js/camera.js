@@ -27,7 +27,14 @@ const getDom = () => ({
 export async function startCamera() {
     try {
         const dom = getDom();
-        const constraints = { video: { facingMode: currentFacingMode }, audio: false };
+        const constraints = { 
+            video: { 
+                facingMode: currentFacingMode,
+                width: { ideal: 2160, max: 4096 }, // Yêu cầu chiều rộng cực lớn
+                height: { ideal: 2160, max: 4096 } // Trình duyệt sẽ tự lùi về mức Max của điện thoại
+            }, 
+            audio: false 
+        };
         currentStream = await navigator.mediaDevices.getUserMedia(constraints);
         dom.video.srcObject = currentStream;
 
@@ -132,7 +139,7 @@ function capturePhoto() {
     // CSS của chúng ta đã xử lý lật gương Preview và Ảnh Preview rồi, nên Canvas chỉ cần vẽ chuẩn là đủ.
     ctx.drawImage(dom.video, 0, 0, dom.canvas.width, dom.canvas.height);
 
-    dom.canvas.toBlob((blob) => { currentBlob = blob; }, 'image/webp', 0.8);
+    dom.canvas.toBlob((blob) => { currentBlob = blob; }, 'image/webp', 0.98);
 
     // Hiển thị ảnh vừa chụp lên màn hình đè lên video
     dom.previewImage.src = dom.canvas.toDataURL('image/jpeg');
