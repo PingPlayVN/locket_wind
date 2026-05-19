@@ -139,7 +139,7 @@ function capturePhoto() {
     // CSS của chúng ta đã xử lý lật gương Preview và Ảnh Preview rồi, nên Canvas chỉ cần vẽ chuẩn là đủ.
     ctx.drawImage(dom.video, 0, 0, dom.canvas.width, dom.canvas.height);
 
-    dom.canvas.toBlob((blob) => { currentBlob = blob; }, 'image/webp', 0.98);
+    dom.canvas.toBlob((blob) => { currentBlob = blob; }, 'image/webp', 1);
 
     // Hiển thị ảnh vừa chụp lên màn hình đè lên video
     dom.previewImage.src = dom.canvas.toDataURL('image/jpeg');
