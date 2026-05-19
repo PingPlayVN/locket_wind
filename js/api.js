@@ -118,7 +118,7 @@ export function uploadPhotoToFirebaseWithProgress(blob, onProgress) {
 }
 
 // 2. Hàm Yêu cầu Locket đăng bài
-export async function postMoment(thumbnailUrl, md5, caption, recipients = []) {
+export async function postMoment(thumbnailUrl, md5, caption, recipients = [], overlays = null) {
     const res = await fetch(`${BASE_URL}/post-moment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -128,7 +128,8 @@ export async function postMoment(thumbnailUrl, md5, caption, recipients = []) {
             thumbnail_url: thumbnailUrl,
             md5: md5,
             caption: caption,
-            recipients: recipients // Gửi danh sách UID lên Cloudflare
+            recipients: recipients,
+            overlays: overlays // Truyền cục màu nền lên Worker
         })
     });
     const result = await res.json();
