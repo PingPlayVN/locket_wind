@@ -2,72 +2,107 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Locket Profile Dashboard 💎</title>
-    <link rel="stylesheet" href="styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Locket Web Clone</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/camera.css">
+    <link rel="stylesheet" href="css/modals.css">
 </head>
 <body>
 
-<div class="container">
-    <div id="loginCard" class="card">
-        <h2>🔑 Đăng Nhập Locket</h2>
-        <input type="email" id="email" placeholder="Nhập Email của bạn">
-        <input type="password" id="password" placeholder="Nhập Mật khẩu">
-        <button id="btnLogin">Đăng Nhập & Tải Hồ Sơ</button>
-        <div id="loginMsg"></div>
+<div class="app-container">
+    
+    <div id="cameraView" class="camera-view">
+        
+        <div class="top-bar">
+            <img id="btnOpenProfile" src="https://www.w3schools.com/howto/img_avatar.png" class="top-avatar-btn">
+            <button id="btnOpenFriends" class="top-friends-pill">👥 Bạn bè</button>
+            <button class="top-chat-btn">💬</button>
+        </div>
+
+        <div class="viewfinder-container">
+            <video id="cameraVideo" class="camera-video" autoplay playsinline></video>
+            <img id="previewImage" class="preview-image" style="display: none;">
+
+            <div id="captionOverlay" class="caption-overlay" style="display: none;">
+                <input type="text" id="modalCaptionInput" placeholder="Thêm tin nhắn..." autocomplete="off">
+                <button id="btnConfirmSend" class="btn-send-moment">➤</button>
+            </div>
+        </div>
+
+        <div id="bottomControls" class="bottom-controls">
+            <button class="btn-icon">🖼️</button>
+            <button id="btnCapture" class="btn-capture"></button>
+            <button class="btn-icon">🔁</button>
+        </div>
+
+        <div id="sendSheet" class="send-sheet" style="display: none;">
+            <div class="send-sheet-header">Gửi đến...</div>
+            <div id="friendsListContainer" class="friends-list-container">
+                <label class="send-user-item">
+                    <div class="send-avatar" style="background:#FFD700; color:#000;">All</div>
+                    <div class="send-name" style="flex: 1;">Tất cả bạn bè</div>
+                    <input type="checkbox" id="checkAllFriends" checked class="send-checkbox">
+                </label>
+                <div id="dynamicFriendsList"></div>
+            </div>
+        </div>
     </div>
 
-    <div id="profileCard" class="card" style="display: none;">
-        <h2>💎 Hồ Sơ Tài Khoản</h2>
-        
-        <div class="profile-container">
-            <div class="avatar-wrapper">
-                <img id="userAvatar" src="" class="avatar" alt="Avatar">
-                <div id="goldBadge" class="badge-gold">GOLD</div>
-            </div>
-            
-            <div class="full-name" id="userFullName">Đang tải...</div>
-            <div class="username" id="userUsername">@username</div>
-            
-            <div class="info-box">
-                <div class="info-row">
-                    <span class="info-label">Mã định danh (UID)</span>
-                    <span class="info-value" id="userUid" style="color: #42a5f5; font-size: 12px;">-</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Họ (Last Name)</span>
-                    <span class="info-value" id="userLastName">-</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Tên (First Name)</span>
-                    <span class="info-value" id="userFirstName">-</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Gói Tài Khoản</span>
-                    <span class="info-value" id="userBadge" style="text-transform: uppercase;">Tiêu chuẩn</span>
-                </div>
-            </div>
-            
-            <div id="statusMessage"></div>
-            
-            <button onclick="location.reload()" class="btn-logout">Đăng Xuất</button>
+    <div id="loginModal" class="modal-overlay active">
+        <div class="modal-content" style="border-radius: 0; height: 100%; display:flex; flex-direction:column; justify-content:center;">
+            <h2 style="text-align: center; color: #FFD700; margin-bottom: 20px;">🔑 Đăng Nhập</h2>
+            <input type="email" id="email" placeholder="Email của bạn">
+            <input type="password" id="password" placeholder="Mật khẩu">
+            <button id="btnLogin" class="btn-primary">Đăng Nhập</button>
+            <div id="loginMsg" style="text-align: center; color: #ff4444; margin-top: 10px;"></div>
         </div>
     </div>
-    <div id="friendsSection" class="card" style="display: none; margin-top: 20px;">
-        <h2>👥 Tìm Kiếm Bạn Bè</h2>
-        
-        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-            <input type="text" id="searchUsername" placeholder="Nhập username cần tìm (Ví dụ: isaac...)" style="margin-bottom: 0;">
-            <button id="btnSearchFriend" style="width: auto; white-space: nowrap; padding: 0 20px;">Tìm Kiếm</button>
+
+    <div id="profileModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="btn-close-modal" id="btnCloseProfile">✕</button>
+            <h3 style="text-align: center; color:#FFD700; margin-bottom: 20px;">Hồ Sơ Của Bạn</h3>
+            
+            <div style="text-align:center; margin-bottom: 20px;">
+                <img id="userAvatar" src="" style="width:80px; height:80px; border-radius:50%; border: 2px solid #FFD700;">
+                <h3 id="userFullName" style="margin-top:10px;">Đang tải...</h3>
+                <p id="userUsername" style="color:#888;">@username</p>
+            </div>
+            
+            <div class="info-row"><span class="info-label">UID</span><span id="userUid">-</span></div>
+            <div class="info-row"><span class="info-label">Hạng</span><span id="userBadge" style="color:#FFD700;">Tiêu chuẩn</span></div>
+            <div id="statusMessage" style="text-align: center; font-size: 12px; margin-top: 10px; color: #00e676;"></div>
+            
+            <button onclick="location.reload()" class="btn-primary" style="background:#333; color:#fff; margin-top:20px;">Đăng Xuất</button>
         </div>
-        
-        <div id="searchResultBox" style="background: #1a1a1a; border: 1px solid #262626; border-radius: 12px; padding: 15px; min-height: 50px; box-sizing: border-box;">
-            <div style="text-align: center; color: #666; font-size: 13px;">Kết quả tìm kiếm sẽ hiển thị ở đây</div>
+    </div>
+
+    <div id="friendsModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="btn-close-modal" id="btnCloseFriends">✕</button>
+            <h3 style="text-align: center; margin-bottom: 20px;">Thêm Bạn Bè</h3>
+            
+            <div class="search-row">
+                <input type="text" id="searchUsername" placeholder="Nhập username...">
+                <button id="btnSearchFriend" class="btn-primary" style="background: #333; color: #fff;">Tìm</button>
+            </div>
+            
+            <div id="searchResultBox">
+                <div style="text-align:center; color:#666; font-size:13px; padding: 20px;">Nhập tên để tìm kiếm</div>
+            </div>
+        </div>
+    </div>
+    <div id="uploadProgressOverlay" class="modal-overlay" style="z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: rgba(20,20,20,0.95); padding: 30px; border-radius: 20px; text-align: center; width: 80%; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+            <div id="uploadStatusText" style="color: #FFD700; font-weight: bold; margin-bottom: 15px; font-size: 16px;">Đang chuẩn bị... 0%</div>
+            <div style="width: 100%; height: 10px; background: #333; border-radius: 10px; overflow: hidden;">
+                <div id="uploadProgressBar" style="width: 0%; height: 100%; background: #FFD700; transition: width 0.3s ease;"></div>
+            </div>
         </div>
     </div>
 </div>
 
 <script type="module" src="./js/app.js"></script>
-
 </body>
 </html>
