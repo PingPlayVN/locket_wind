@@ -1,4 +1,4 @@
-// [js/camera.js] - ĐÃ FIX LỖI NÚT Aa BẤM KHÔNG LÊN
+// [js/camera.js] - BẢN HOÀN THIỆN CÓ LƯU CACHE MÀU SETTING (LOCALSTORAGE)
 import * as api from './api.js';
 import * as friends from './friends.js';
 
@@ -14,7 +14,6 @@ const getDom = () => ({
     bottomControls: document.getElementById('bottomControls'),
     previewImage: document.getElementById('previewImage'),
     
-    // Đã cập nhật đúng ID của bảng màu mới
     captionOverlay: document.getElementById('captionOverlay'),
     customColorPanel: document.getElementById('customColorPanel'), 
     color1: document.getElementById('vibeColor1'),
@@ -35,8 +34,8 @@ export async function startCamera() {
     try {
         const dom = getDom();
         const constraints = { video: { facingMode: currentFacingMode } };
-        if (typeof dom.video.width !== 'undefined') constraints.video.width = { ideal: 2160, max: 4096 };
-        if (typeof dom.video.height !== 'undefined') constraints.video.height = { ideal: 2160, max: 4096 };
+        if (typeof dom.video.width !== 'undefined') constraints.video.width = { ideal: 1920 };
+        if (typeof dom.video.height !== 'undefined') constraints.video.height = { ideal: 1920 };
 
         currentStream = await navigator.mediaDevices.getUserMedia(constraints);
         dom.video.srcObject = currentStream;
@@ -61,12 +60,9 @@ async function flipCamera() {
     await startCamera(); 
 }
 
-// LOGIC ẨN/HIỆN BẢNG MÀU ĐÃ FIX
 function toggleVibePanel() {
     const dom = getDom();
     if (!dom.customColorPanel) return;
-
-    // Chuyển đổi trạng thái đóng/mở của bảng customColorPanel
     dom.customColorPanel.style.display = dom.customColorPanel.style.display === 'block' ? 'none' : 'block';
     dom.modalCaptionInput.focus();
 }
@@ -75,22 +71,24 @@ function capturePhoto() {
     const dom = getDom();
     if (!dom.video.videoWidth) return;
     
-    // Thuật toán: Nếu ảnh to hơn Full HD (1080p), tự động thu nhỏ lại để chống tràn RAM trên điện thoại
-    const MAX_WIDTH = 1920; 
     let width = dom.video.videoWidth;
     let height = dom.video.videoHeight;
+    const MAX_DIMENSION = 1440; 
 
-    if (width > MAX_WIDTH) {
-        height = Math.floor(height * (MAX_WIDTH / width));
-        width = MAX_WIDTH;
+    if (Math.max(width, height) > MAX_DIMENSION) {
+        if (width > height) {
+            height = Math.floor(height * (MAX_DIMENSION / width));
+            width = MAX_DIMENSION;
+        } else {
+            width = Math.floor(width * (MAX_DIMENSION / height));
+            height = MAX_DIMENSION;
+        }
     }
 
     dom.canvas.width = width;
     dom.canvas.height = height;
     dom.canvas.getContext('2d').drawImage(dom.video, 0, 0, width, height);
-
-    // ĐỔI SANG JPEG (Tương thích 100% với iPhone/Android) và để chất lượng 0.9 cho nhẹ máy
-    dom.canvas.toBlob((blob) => { currentBlob = blob; }, 'image/jpeg', 0.9);
+    dom.canvas.toBlob((blob) => { currentBlob = blob; }, 'image/jpeg', 0.85);
 
     dom.previewImage.src = dom.canvas.toDataURL('image/jpeg');
     dom.previewImage.style.display = 'block';
@@ -125,7 +123,7 @@ async function confirmSendMoment() {
         overlaysPayload = [{
             "data": {
                 "background": { "colors": bgColors },
-                "icon": { "type": "emoji", "data": "⠀" }, // Ký tự tàng hình
+                "icon": { "type": "emoji", "data": "⠀" }, // Ký tự tàng hình đánh lừa Locket
                 "text_color": "#FFFFFF",
                 "type": "static_content",
                 "max_lines": { "value": "1", "@type": "type.googleapis.com/google.protobuf.Int64Value" },
@@ -172,11 +170,7 @@ async function confirmSendMoment() {
             dom.bottomControls.style.display = 'flex';
             dom.btnConfirmSend.disabled = false;
             
-            if (dom.useCustomVibe) {
-                dom.useCustomVibe.checked = false;
-                dom.captionOverlay.style.background = "rgba(30, 30, 30, 0.85)";
-            }
-            if(dom.btnToggleVibes) dom.btnToggleVibes.classList.remove('active');
+            // Lưu ý: Không reset màu Custom Vibe nữa để giữ Setting cho lần chụp sau
             currentBlob = null;
         }, 1500);
 
@@ -235,26 +229,57 @@ document.addEventListener('DOMContentLoaded', () => {
     dom.captureBtn?.addEventListener('click', capturePhoto);
     dom.btnConfirmSend?.addEventListener('click', confirmSendMoment);
     dom.btnFlipCamera?.addEventListener('click', flipCamera);
-    
-    // Gắn sự kiện toggle cho nút Aa
     dom.btnToggleVibes?.addEventListener('click', toggleVibePanel);
     
+    // ==========================================
+    // LOGIC LƯU VÀ KHÔI PHỤC SETTING BẢNG MÀU
+    // ==========================================
+    const saveVibeSettings = () => {
+        if (!dom.useCustomVibe) return;
+        const settings = {
+            c1: dom.color1.value,
+            c2: dom.color2.value,
+            c3: dom.color3.value,
+            enabled: dom.useCustomVibe.checked
+        };
+        localStorage.setItem('locket_vibe_settings', JSON.stringify(settings));
+    };
+
     const updateCaptionPreview = () => {
         if (dom.useCustomVibe && dom.useCustomVibe.checked) {
             const c1 = dom.color1.value, c2 = dom.color2.value, c3 = dom.color3.value;
-            // Áp dụng gradient đổ dọc xuống chuẩn Locket
             dom.captionOverlay.style.background = `linear-gradient(to bottom, ${c1}, ${c2}, ${c3})`;
             if(dom.btnToggleVibes) dom.btnToggleVibes.classList.add('active');
         } else {
             dom.captionOverlay.style.background = "rgba(30, 30, 30, 0.85)";
             if(dom.btnToggleVibes) dom.btnToggleVibes.classList.remove('active');
         }
+        saveVibeSettings(); // Lưu tự động mỗi khi người dùng kéo màu hoặc tích ô
     };
+
+    // Khôi phục Setting từ Cache khi vừa mở web
+    try {
+        const savedSettings = localStorage.getItem('locket_vibe_settings');
+        if (savedSettings && dom.useCustomVibe) {
+            const settings = JSON.parse(savedSettings);
+            if (settings.c1) dom.color1.value = settings.c1;
+            if (settings.c2) dom.color2.value = settings.c2;
+            if (settings.c3) dom.color3.value = settings.c3;
+            dom.useCustomVibe.checked = settings.enabled === true;
+        }
+    } catch(e) {
+        console.error("Lỗi đọc cache màu:", e);
+    }
+    
+    // Kích hoạt giao diện màu theo setting vừa load
+    updateCaptionPreview();
 
     dom.color1?.addEventListener('input', updateCaptionPreview);
     dom.color2?.addEventListener('input', updateCaptionPreview);
     dom.color3?.addEventListener('input', updateCaptionPreview);
     dom.useCustomVibe?.addEventListener('change', updateCaptionPreview);
+
+    // ==========================================
 
     dom.checkAllFriends?.addEventListener('change', () => {
         document.querySelectorAll('.target-friend').forEach(cb => cb.checked = false);
