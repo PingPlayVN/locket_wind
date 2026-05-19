@@ -24,7 +24,12 @@ const dom = {
 dom.btnOpenProfile.addEventListener('click', () => dom.profileModal.classList.add('active'));
 dom.btnCloseProfile.addEventListener('click', () => dom.profileModal.classList.remove('active'));
 
-dom.btnOpenFriends.addEventListener('click', () => dom.friendsModal.classList.add('active'));
+dom.btnOpenFriends.addEventListener('click', () => {
+    dom.friendsModal.classList.add('active');
+    
+    // GỌI HÀM TẢI DANH SÁCH BẠN BÈ Ở ĐÂY 👇
+    friends.loadMyFriendsList(); 
+});
 dom.btnCloseFriends.addEventListener('click', () => dom.friendsModal.classList.remove('active'));
 
 // Bấm ra ngoài vùng đen để đóng modal
