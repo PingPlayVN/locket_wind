@@ -1,0 +1,27 @@
+/* css/base.css - Reset & Màu sắc chung */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+    background: #000; /* Nền đen chuẩn Locket */
+    color: #fff; 
+    display: flex; 
+    justify-content: center;
+    height: 100vh; 
+    overflow: hidden; /* Cấm cuộn trang */
+}
+
+/* Khung giả lập điện thoại (dành cho PC) */
+.app-container {
+    width: 100%;
+    max-width: 420px; /* Chiều rộng màn hình điện thoại */
+    height: 100%;
+    position: relative;
+    background: #000;
+    overflow: hidden;
+}
+
+/* Định dạng Input & Button chung cho các Form */
+input { width: 100%; padding: 14px; border: none; background: #222; color: #fff; border-radius: 12px; margin-bottom: 15px; font-size: 15px; outline: none; }
+input:focus { border: 1px solid #FFD700; background: #2a2a2a; }
+.btn-primary { width: 100%; padding: 16px; background: #FFD700; color: #000; border: none; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 15px; }
+.btn-primary:disabled { background: #555; color: #888; cursor: not-allowed; }
