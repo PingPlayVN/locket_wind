@@ -1,19 +1,41 @@
-// [VIBECODE-PROJECT-NOTE]: MODULE UI CONTROLLER - Nơi gắn sự kiện cho các nút bấm và cập nhật DOM.
-// Agent: Xử lý hiển thị trạng thái Loading, Lỗi, và gán dữ liệu từ api.js vào giao diện.
+// [js/app.js]
+import * as api from './api.js'; 
+import * as friends from './friends.js'; 
+import * as camera from './camera.js';
 
-import * as api from './api.js'; // Require thông qua đường dẫn tương đối từ index.html
-import * as friends from './friends.js'; //(Gọi sang module bạn bè)
-
-// Các thành phần DOM
 const dom = {
-    loginCard: document.getElementById('loginCard'),
-    profileCard: document.getElementById('profileCard'),
+    loginModal: document.getElementById('loginModal'),
+    profileModal: document.getElementById('profileModal'),
+    friendsModal: document.getElementById('friendsModal'),
     btnLogin: document.getElementById('btnLogin'),
     loginMsg: document.getElementById('loginMsg'),
-    statusMessage: document.getElementById('statusMessage')
+    statusMessage: document.getElementById('statusMessage'),
+    
+    // Nút mở Modal
+    btnOpenProfile: document.getElementById('btnOpenProfile'),
+    btnOpenFriends: document.getElementById('btnOpenFriends'),
+    
+    // Nút đóng Modal
+    btnCloseProfile: document.getElementById('btnCloseProfile'),
+    btnCloseFriends: document.getElementById('btnCloseFriends')
 };
 
-// Gắn sự kiện đăng nhập
+// --- GÁN SỰ KIỆN ĐÓNG MỞ MODAL ---
+dom.btnOpenProfile.addEventListener('click', () => dom.profileModal.classList.add('active'));
+dom.btnCloseProfile.addEventListener('click', () => dom.profileModal.classList.remove('active'));
+
+dom.btnOpenFriends.addEventListener('click', () => dom.friendsModal.classList.add('active'));
+dom.btnCloseFriends.addEventListener('click', () => dom.friendsModal.classList.remove('active'));
+
+// Bấm ra ngoài vùng đen để đóng modal
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+        if(e.target === overlay) overlay.classList.remove('active');
+    });
+});
+
+
+// --- ĐĂNG NHẬP ---
 dom.btnLogin.addEventListener('click', async () => {
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value.trim();
@@ -27,61 +49,46 @@ dom.btnLogin.addEventListener('click', async () => {
     try {
         await api.login(email, password);
         
-        // Đổi giao diện
-        dom.loginCard.style.display = 'none';
-        dom.profileCard.style.display = 'block';
+        // Đăng nhập thành công -> Ẩn màn Login đi
+        dom.loginModal.classList.remove('active');
 
-        // --- KÍCH HOẠT MODULE BẠN BÈ TẠI ĐÂY ---
+        // Bật Camera lên làm màn hình chính
+        camera.startCamera();
+
+        // Kích hoạt module tìm bạn
         friends.initFriendsModule();
-        friends.showFriendsUI();
         
+        // Tải Profile
         loadProfileData();
     } catch (error) {
         dom.loginMsg.innerText = "Lỗi: " + error.message;
         dom.btnLogin.disabled = false; 
-        dom.btnLogin.innerText = "Đăng Nhập & Tải Hồ Sơ";
+        dom.btnLogin.innerText = "Đăng Nhập";
     }
 });
 
-// Hàm hiển thị dữ liệu Profile
+// --- TẢI PROFILE ---
 async function loadProfileData() {
-    dom.statusMessage.innerText = "Đang đồng bộ dữ liệu hồ sơ...";
-
+    dom.statusMessage.innerText = "Đang đồng bộ dữ liệu...";
     try {
         const userData = await api.fetchUserProfile();
-        if (!userData) throw new Error("Không lấy được dữ liệu từ Server");
+        if (!userData) throw new Error("Lỗi Server");
 
-        // Gán Ảnh
-        document.getElementById('userAvatar').src = userData.profile_picture_url || "https://www.w3schools.com/howto/img_avatar.png";
-
-        // Gán Tên
-        const firstName = userData.first_name || "";
-        const lastName = userData.last_name || "";
-        document.getElementById('userFullName').innerText = `${lastName} ${firstName}`.trim() || "Chưa Đặt Tên";
+        const avatarUrl = userData.profile_picture_url || "https://www.w3schools.com/howto/img_avatar.png";
+        
+        // Cập nhật Avatar ở màn hình chính (Top-left)
+        document.getElementById('btnOpenProfile').src = avatarUrl;
+        
+        // Cập nhật ở trong Modal
+        document.getElementById('userAvatar').src = avatarUrl;
+        document.getElementById('userFullName').innerText = `${userData.last_name || ''} ${userData.first_name || ''}`.trim() || "Chưa Đặt Tên";
         document.getElementById('userUsername').innerText = userData.username ? `@${userData.username}` : "@no_username";
-        
-        // Gán thông tin chi tiết
         document.getElementById('userUid').innerText = userData.uid || "-";
-        document.getElementById('userFirstName').innerText = firstName || "(Trống)";
-        document.getElementById('userLastName').innerText = lastName || "(Trống)";
-        
-        // Xử lý Badge Gold
-        const badgeEl = document.getElementById('userBadge');
-        const goldBadge = document.getElementById('goldBadge');
         
         if (userData.badge === "locket_gold") {
-            badgeEl.innerText = "Locket Gold VIP 💎";
-            badgeEl.style.color = "#FFD700";
-            goldBadge.style.display = "block";
-        } else {
-            badgeEl.innerText = "Thành Viên Tiêu Chuẩn";
-            badgeEl.style.color = "#888";
-            goldBadge.style.display = "none";
+            document.getElementById('userBadge').innerText = "Locket Gold VIP 💎";
         }
-
-        dom.statusMessage.innerText = "✓ Đồng bộ hồ sơ hoàn tất!";
-        dom.statusMessage.style.color = "#00e676";
-
+        dom.statusMessage.innerText = "✓ Đồng bộ hoàn tất";
     } catch (error) {
         dom.statusMessage.innerText = "❌ Lỗi: " + error.message;
         dom.statusMessage.style.color = "#ff1744";

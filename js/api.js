@@ -33,14 +33,15 @@ export async function login(email, password) {
     return session.localId;
 }
 
-export async function fetchUserProfile() {
+export async function fetchUserProfile(targetUid = null) {
     const res = await fetch(`${BASE_URL}/profile`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ localId: session.localId, idToken: session.idToken })
+        // Nếu có targetUid thì lấy profile của bạn bè, không thì lấy của chính mình (session.localId)
+        body: JSON.stringify({ localId: targetUid || session.localId, idToken: session.idToken })
     });
     const result = await res.json();
-    handleError(result, "Lỗi lấy profile");
+    if (!result.success) throw new Error(result.error || "Lỗi lấy profile");
     return result.data;
 }
 
@@ -63,5 +64,74 @@ export async function addFriend(targetUid, isCelebrity = false) {
     });
     const result = await res.json();
     handleError(result, "Lỗi kết bạn");
+    return result.data;
+}
+
+// HÀM MỚI: Lấy danh sách bạn bè
+export async function getFriendsList() {
+    const res = await fetch(`${BASE_URL}/friends`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ localId: session.localId, idToken: session.idToken })
+    });
+    const result = await res.json();
+    if (!result.success) throw new Error("Lỗi lấy danh sách bạn bè");
+    return result.data;
+}
+
+// HÀM CẬP NHẬT: Upload ảnh CÓ BÁO CÁO TIẾN TRÌNH (%)
+export function uploadPhotoToFirebaseWithProgress(blob, onProgress) {
+    return new Promise((resolve, reject) => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let photoId = '';
+        for (let i = 0; i < 20; i++) photoId += chars.charAt(Math.floor(Math.random() * chars.length));
+        
+        const path = `users/${session.localId}/moments/thumbnails/${photoId}.webp`;
+        const encodedPath = encodeURIComponent(path);
+        const url = `https://firebasestorage.googleapis.com/v0/b/locket-img/o?uploadType=media&name=${encodedPath}`;
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', url, true);
+        xhr.setRequestHeader('Authorization', `Firebase ${session.idToken}`);
+        xhr.setRequestHeader('Content-Type', 'image/webp');
+
+        // Bắt sự kiện tải lên để báo % tiến trình
+        xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+                const percent = Math.round((e.loaded / e.total) * 100);
+                if (onProgress) onProgress(percent);
+            }
+        };
+
+        xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                const data = JSON.parse(xhr.responseText);
+                const thumbnailUrl = `https://firebasestorage.googleapis.com:443/v0/b/locket-img/o/${encodedPath}?alt=media&token=${data.downloadTokens}`;
+                resolve(thumbnailUrl);
+            } else {
+                reject(new Error("Lỗi upload ảnh"));
+            }
+        };
+        xhr.onerror = () => reject(new Error("Lỗi kết nối mạng"));
+        xhr.send(blob);
+    });
+}
+
+// 2. Hàm Yêu cầu Locket đăng bài
+export async function postMoment(thumbnailUrl, md5, caption, recipients = []) {
+    const res = await fetch(`${BASE_URL}/post-moment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            localId: session.localId, 
+            idToken: session.idToken,
+            thumbnail_url: thumbnailUrl,
+            md5: md5,
+            caption: caption,
+            recipients: recipients // Gửi danh sách UID lên Cloudflare
+        })
+    });
+    const result = await res.json();
+    handleError(result, "Lỗi khi đăng ảnh lên Locket");
     return result.data;
 }
