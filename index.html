@@ -67,10 +67,24 @@
     <div id="loginModal" class="modal-overlay active">
         <div class="modal-content" style="border-radius: 0; height: 100%; display:flex; flex-direction:column; justify-content:center;">
             <h2 style="text-align: center; color: #FFD700; margin-bottom: 20px;">🔑 Đăng Nhập</h2>
+            
             <input type="email" id="email" placeholder="Email của bạn">
             <input type="password" id="password" placeholder="Mật khẩu">
+            
+            <div id="activeKeySection" style="display: none; margin-bottom: 15px; background: rgba(255, 184, 108, 0.1); border-left: 3px solid #ffb86c; padding: 10px; border-radius: 4px;">
+                <label style="font-size: 11px; color: #ffb86c; line-height: 1.4;">
+                    ⚠️ Bạn chưa có Active Key trên thiết bị này. Vui lòng lấy mã:
+                </label>
+                
+                <button id="btnRequestCode" style="margin-top: 8px; margin-bottom: 10px; background: #ffb86c; color: #000; padding: 10px; font-size: 12px; width: 100%; border-radius: 6px; font-weight: bold; border: none; cursor: pointer;">
+                    📩 Gửi Mã Về Email
+                </button>
+                
+                <input type="text" id="activeKey" placeholder="Dán mã Active Key vào đây..." style="margin-top: 0; margin-bottom: 0;">
+            </div>
+
             <button id="btnLogin" class="btn-primary">Đăng Nhập</button>
-            <div id="loginMsg" style="text-align: center; color: #ff4444; margin-top: 10px;"></div>
+            <div id="loginMsg" style="text-align: center; color: #ff4444; margin-top: 10px; font-size: 13px;"></div>
         </div>
     </div>
 
