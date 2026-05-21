@@ -91,16 +91,19 @@ export async function requestActiveKey(email) {
     return await res.json().catch(() => ({}));
 }
 
-export async function postMoment(thumbnailUrl, md5, caption, recipients = [], overlays = null) {
+export async function postMoment(thumbnailUrl, md5, caption, recipients = [], overlays = null, videoUrl = null) {
+    let payload = { 
+        localId: session.localId, idToken: session.idToken, appCheckToken: session.appCheckToken,
+        thumbnail_url: thumbnailUrl, md5: md5, caption: caption, recipients: recipients, overlays: overlays 
+    };
+    if (videoUrl) payload.video_url = videoUrl; // Nhét thêm link video
+
     const res = await fetch(`${BASE_URL}/post-moment`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            localId: session.localId, idToken: session.idToken, appCheckToken: session.appCheckToken,
-            thumbnail_url: thumbnailUrl, md5: md5, caption: caption, recipients: recipients, overlays: overlays 
-        })
+        body: JSON.stringify(payload)
     });
     const result = await res.json();
-    handleError(result, "Lỗi đăng ảnh");
+    handleError(result, "Lỗi đăng ảnh/video");
     return result.data;
 }
 
@@ -130,6 +133,39 @@ export function uploadPhotoToFirebaseWithProgress(blob, onProgress) {
                 const data = JSON.parse(xhr.responseText);
                 resolve(`https://firebasestorage.googleapis.com:443/v0/b/locket-img/o/${encodedPath}?alt=media&token=${data.downloadTokens}`);
             } else { reject(new Error("Lỗi upload ảnh")); }
+        };
+        xhr.onerror = () => reject(new Error("Lỗi kết nối mạng"));
+        xhr.send(blob);
+    });
+}
+
+export function uploadVideoToFirebaseWithProgress(blob, onProgress) {
+    return new Promise((resolve, reject) => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let photoId = '';
+        for (let i = 0; i < 20; i++) photoId += chars.charAt(Math.floor(Math.random() * chars.length));
+        
+        const encodedPath = encodeURIComponent(`users/${session.localId}/moments/videos/${photoId}.mp4`);
+        // LƯU Ý: Đuôi url của video trỏ vào bucket locket-video
+        const url = `https://firebasestorage.googleapis.com/v0/b/locket-video/o?uploadType=media&name=${encodedPath}`;
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', url, true);
+        xhr.setRequestHeader('Authorization', `Firebase ${session.idToken}`);
+        xhr.setRequestHeader('Content-Type', 'video/mp4');
+
+        xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+                const percent = Math.round((e.loaded / e.total) * 100);
+                if (onProgress) onProgress(percent);
+            }
+        };
+
+        xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                const data = JSON.parse(xhr.responseText);
+                resolve(`https://firebasestorage.googleapis.com:443/v0/b/locket-video/o/${encodedPath}?alt=media&token=${data.downloadTokens}`);
+            } else { reject(new Error("Lỗi upload video")); }
         };
         xhr.onerror = () => reject(new Error("Lỗi kết nối mạng"));
         xhr.send(blob);

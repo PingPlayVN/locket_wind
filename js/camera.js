@@ -1,10 +1,16 @@
-// [js/camera.js] - BẢN HOÀN THIỆN CÓ LƯU CACHE MÀU SETTING (LOCALSTORAGE)
+// [js/camera.js] - CHUẨN LOCKET: 1:1 VUÔNG, KHÔNG TIẾNG, CAPTION MẶC ĐỊNH
 import * as api from './api.js';
-import * as friends from './friends.js';
 
 let currentStream = null;
 let currentBlob = null; 
+let currentVideoBlob = null; 
 let currentFacingMode = 'user'; 
+
+let mediaRecorder = null;
+let recordedChunks = [];
+let pressTimer = null;
+let isLongPress = false;
+let isRecordingCanvas = false;
 
 const getDom = () => ({
     video: document.getElementById('cameraVideo'),
@@ -13,17 +19,9 @@ const getDom = () => ({
     canvas: document.createElement('canvas'),
     bottomControls: document.getElementById('bottomControls'),
     previewImage: document.getElementById('previewImage'),
-    
+    previewVideo: document.getElementById('previewVideo'), 
     captionOverlay: document.getElementById('captionOverlay'),
-    customColorPanel: document.getElementById('customColorPanel'), 
-    color1: document.getElementById('vibeColor1'),
-    color2: document.getElementById('vibeColor2'),
-    color3: document.getElementById('vibeColor3'),
-    useCustomVibe: document.getElementById('useCustomVibe'),
-    
-    btnToggleVibes: document.getElementById('btnToggleVibes'), 
     modalCaptionInput: document.getElementById('modalCaptionInput'),
-    
     sendSheet: document.getElementById('sendSheet'),
     checkAllFriends: document.getElementById('checkAllFriends'),
     dynamicFriendsList: document.getElementById('dynamicFriendsList'),
@@ -33,20 +31,15 @@ const getDom = () => ({
 export async function startCamera() {
     try {
         const dom = getDom();
-        const constraints = { video: { facingMode: currentFacingMode } };
-        if (typeof dom.video.width !== 'undefined') constraints.video.width = { ideal: 1920 };
-        if (typeof dom.video.height !== 'undefined') constraints.video.height = { ideal: 1920 };
-
+        // KHÔNG XIN QUYỀN MIC (audio: false) ĐỂ TẮT TIẾNG TRIỆT ĐỂ
+        const constraints = { video: { facingMode: currentFacingMode, width: { ideal: 1080 }, height: { ideal: 1080 } }, audio: false };
         currentStream = await navigator.mediaDevices.getUserMedia(constraints);
         dom.video.srcObject = currentStream;
 
-        if (currentFacingMode === 'environment') {
-            dom.video.style.transform = 'scaleX(1)';
-            dom.previewImage.style.transform = 'scaleX(1)';
-        } else {
-            dom.video.style.transform = 'scaleX(-1)';
-            dom.previewImage.style.transform = 'scaleX(-1)';
-        }
+        const transformValue = currentFacingMode === 'environment' ? 'scaleX(1)' : 'scaleX(-1)';
+        dom.video.style.transform = transformValue;
+        dom.previewImage.style.transform = transformValue;
+        dom.previewVideo.style.transform = transformValue;
     } catch (error) { console.error("Camera Error:", error); }
 }
 
@@ -60,79 +53,111 @@ async function flipCamera() {
     await startCamera(); 
 }
 
-function toggleVibePanel() {
-    const dom = getDom();
-    if (!dom.customColorPanel) return;
-    dom.customColorPanel.style.display = dom.customColorPanel.style.display === 'block' ? 'none' : 'block';
-    dom.modalCaptionInput.focus();
-}
-
-function capturePhoto() {
-    const dom = getDom();
-    if (!dom.video.videoWidth) return;
-    
-    let width = dom.video.videoWidth;
-    let height = dom.video.videoHeight;
-    const MAX_DIMENSION = 1440; 
-
-    if (Math.max(width, height) > MAX_DIMENSION) {
-        if (width > height) {
-            height = Math.floor(height * (MAX_DIMENSION / width));
-            width = MAX_DIMENSION;
-        } else {
-            width = Math.floor(width * (MAX_DIMENSION / height));
-            height = MAX_DIMENSION;
-        }
-    }
-
-    dom.canvas.width = width;
-    dom.canvas.height = height;
-    dom.canvas.getContext('2d').drawImage(dom.video, 0, 0, width, height);
-    dom.canvas.toBlob((blob) => { currentBlob = blob; }, 'image/jpeg', 0.85);
-
-    dom.previewImage.src = dom.canvas.toDataURL('image/jpeg');
-    dom.previewImage.style.display = 'block';
-
+function transitionToPreview(dom) {
     dom.bottomControls.style.display = 'none'; 
     dom.captionOverlay.style.display = 'flex'; 
-    
-    if (dom.btnToggleVibes) dom.btnToggleVibes.style.display = 'block';
-    if (dom.customColorPanel) dom.customColorPanel.style.display = 'none'; 
-    
     dom.sendSheet.style.display = 'flex'; 
-    
     dom.modalCaptionInput.value = "";
     dom.modalCaptionInput.focus();
     loadFriendsList(dom);
 }
 
+// 1. CHỤP ẢNH (CROP CHUẨN 1:1 TỪ GIỮA MÀN HÌNH)
+function capturePhoto() {
+    const dom = getDom();
+    if (!dom.video.videoWidth) return;
+    
+    const size = Math.min(dom.video.videoWidth, dom.video.videoHeight);
+    const startX = (dom.video.videoWidth - size) / 2;
+    const startY = (dom.video.videoHeight - size) / 2;
+
+    let finalSize = size;
+    const MAX_DIMENSION = 1440; 
+    if (size > MAX_DIMENSION) finalSize = MAX_DIMENSION;
+
+    dom.canvas.width = finalSize; dom.canvas.height = finalSize;
+    // Cắt phần hình vuông ở giữa video
+    dom.canvas.getContext('2d').drawImage(dom.video, startX, startY, size, size, 0, 0, finalSize, finalSize);
+    dom.canvas.toBlob((blob) => { currentBlob = blob; }, 'image/jpeg', 0.85);
+
+    dom.previewImage.src = dom.canvas.toDataURL('image/jpeg');
+    dom.previewImage.style.display = 'block';
+    dom.previewVideo.style.display = 'none';
+    currentVideoBlob = null; 
+
+    transitionToPreview(dom);
+}
+
+// 2. QUAY VIDEO (RECORD CANVAS 1:1 - KHÔNG TIẾNG)
+function startRecordingVideo() {
+    if (!currentStream) return;
+    const dom = getDom();
+    recordedChunks = [];
+    isRecordingCanvas = true;
+
+    // TẠO CANVAS 1:1 ĐỂ GHI HÌNH
+    const recordCanvas = document.createElement('canvas');
+    const size = Math.min(dom.video.videoWidth, dom.video.videoHeight);
+    recordCanvas.width = size; recordCanvas.height = size;
+    const ctx = recordCanvas.getContext('2d');
+    const startX = (dom.video.videoWidth - size) / 2;
+    const startY = (dom.video.videoHeight - size) / 2;
+
+    // Vòng lặp liên tục vẽ video lên canvas 1:1
+    function drawFrame() {
+        if (!isRecordingCanvas) return;
+        ctx.drawImage(dom.video, startX, startY, size, size, 0, 0, size, size);
+        requestAnimationFrame(drawFrame);
+    }
+    drawFrame();
+
+    // Thu lại luồng hình ảnh từ Canvas (30 FPS) -> Tự động vô hiệu hóa âm thanh
+    const canvasStream = recordCanvas.captureStream(30);
+
+    mediaRecorder = new MediaRecorder(canvasStream, { mimeType: 'video/webm' });
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+    mediaRecorder.onstop = () => {
+        isRecordingCanvas = false; // Dừng vòng lặp vẽ
+        // Chuyển blob thành mp4 để Firebase nhận diện
+        currentVideoBlob = new Blob(recordedChunks, { type: 'video/mp4' });
+
+        // Lấy Thumbnail 1:1 từ chính canvas vừa record
+        dom.canvas.width = size; dom.canvas.height = size;
+        dom.canvas.getContext('2d').drawImage(recordCanvas, 0, 0, size, size);
+        dom.canvas.toBlob((blob) => { currentBlob = blob; }, 'image/jpeg', 0.85);
+
+        dom.previewVideo.src = URL.createObjectURL(currentVideoBlob);
+        dom.previewVideo.style.display = 'block';
+        dom.previewImage.style.display = 'none';
+        
+        transitionToPreview(dom);
+    };
+    
+    mediaRecorder.start();
+    
+    dom.captureBtn.style.transform = 'scale(1.3)';
+    dom.captureBtn.style.backgroundColor = 'rgba(255, 68, 68, 0.5)';
+    dom.captureBtn.style.border = '4px solid #ff4444';
+}
+
+function stopRecordingVideo() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+    const dom = getDom();
+    dom.captureBtn.style.transform = '';
+    dom.captureBtn.style.backgroundColor = '';
+    dom.captureBtn.style.border = '';
+}
+
+// 3. XÁC NHẬN GỬI 
 async function confirmSendMoment() {
     const dom = getDom();
-    if (!currentBlob) return;
+    if (!currentBlob && !currentVideoBlob) return;
 
     const caption = dom.modalCaptionInput.value.trim();
     let recipients = [];
     if (!dom.checkAllFriends.checked) {
         document.querySelectorAll('.target-friend:checked').forEach(cb => recipients.push(cb.value));
         if (recipients.length === 0) return alert("Vui lòng chọn ít nhất 1 người để gửi!");
-    }
-
-    let overlaysPayload = null;
-    if (dom.useCustomVibe && dom.useCustomVibe.checked) {
-        let bgColors = [dom.color1.value, dom.color2.value, dom.color3.value];
-        overlaysPayload = [{
-            "data": {
-                "background": { "colors": bgColors },
-                "icon": { "type": "emoji", "data": "⠀" }, // Ký tự tàng hình đánh lừa Locket
-                "text_color": "#FFFFFF",
-                "type": "static_content",
-                "max_lines": { "value": "1", "@type": "type.googleapis.com/google.protobuf.Int64Value" },
-                "text": caption
-            },
-            "overlay_id": "caption:custom_gradient",
-            "alt_text": caption,
-            "overlay_type": "caption"
-        }];
     }
 
     const progressOverlay = document.getElementById('uploadProgressOverlay');
@@ -148,30 +173,47 @@ async function confirmSendMoment() {
     dom.btnConfirmSend.disabled = true;
 
     try {
-        updateProgress(0, "☁️ Đang tải ảnh lên Firebase... 0%");
-        const thumbnailUrl = await api.uploadPhotoToFirebaseWithProgress(currentBlob, (pct) => {
-            updateProgress(Math.floor(pct * 0.8), `☁️ Đang tải ảnh lên... ${pct}%`);
-        });
+        let thumbnailUrl = "";
+        let videoUrl = null;
+
+        if (currentVideoBlob) {
+            updateProgress(10, "☁️ Đang tải ảnh thu nhỏ...");
+            thumbnailUrl = await api.uploadPhotoToFirebaseWithProgress(currentBlob, null);
+            
+            updateProgress(20, "☁️ Đang tải video (1:1, Không tiếng)...");
+            videoUrl = await api.uploadVideoToFirebaseWithProgress(currentVideoBlob, (pct) => {
+                updateProgress(20 + Math.floor(pct * 0.6), `☁️ Đang tải Video... ${pct}%`);
+            });
+        } else {
+            updateProgress(0, "☁️ Đang tải ảnh lên Firebase...");
+            thumbnailUrl = await api.uploadPhotoToFirebaseWithProgress(currentBlob, (pct) => {
+                updateProgress(Math.floor(pct * 0.8), `☁️ Đang tải ảnh... ${pct}%`);
+            });
+        }
         
-        updateProgress(85, "🔄 Đang xử lý mã hóa bảo mật...");
+        updateProgress(85, "🔄 Đang đồng bộ...");
         const randomMd5 = [...Array(32)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
         
         updateProgress(90, "🚀 Đang gửi bài đăng lên Locket...");
-        await api.postMoment(thumbnailUrl, randomMd5, caption, recipients, overlaysPayload);
+        
+        // TRỞ VỀ NGUYÊN THỦY: Không dùng overlays (truyền null), chỉ truyền caption text thuần.
+        // Locket sẽ tự động chuyển đổi và hiển thị đúng trên mọi máy.
+        await api.postMoment(thumbnailUrl, randomMd5, caption, recipients, null, videoUrl);
 
         updateProgress(100, "✅ Đã gửi thành công!");
         
         setTimeout(() => {
             if(progressOverlay) progressOverlay.style.display = 'none';
             dom.previewImage.style.display = 'none';
+            dom.previewVideo.style.display = 'none';
+            dom.previewVideo.src = "";
             dom.captionOverlay.style.display = 'none';
-            if (dom.customColorPanel) dom.customColorPanel.style.display = 'none';
             dom.sendSheet.style.display = 'none';
             dom.bottomControls.style.display = 'flex';
             dom.btnConfirmSend.disabled = false;
             
-            // Lưu ý: Không reset màu Custom Vibe nữa để giữ Setting cho lần chụp sau
             currentBlob = null;
+            currentVideoBlob = null;
         }, 1500);
 
     } catch (error) {
@@ -226,74 +268,46 @@ async function loadFriendsList(dom) {
 document.addEventListener('DOMContentLoaded', () => {
     const dom = getDom();
     
-    dom.captureBtn?.addEventListener('click', capturePhoto);
+    const handlePointerDown = (e) => {
+        if(e.cancelable) e.preventDefault();
+        isLongPress = false;
+        pressTimer = setTimeout(() => {
+            isLongPress = true;
+            startRecordingVideo();
+        }, 300);
+    };
+
+    const handlePointerUp = (e) => {
+        if(e.cancelable) e.preventDefault();
+        clearTimeout(pressTimer);
+        if (isLongPress) {
+            stopRecordingVideo(); 
+        } else {
+            capturePhoto(); 
+        }
+    };
+
+    dom.captureBtn?.addEventListener('pointerdown', handlePointerDown);
+    dom.captureBtn?.addEventListener('pointerup', handlePointerUp);
+    dom.captureBtn?.addEventListener('pointerleave', handlePointerUp);
+
     dom.btnConfirmSend?.addEventListener('click', confirmSendMoment);
     dom.btnFlipCamera?.addEventListener('click', flipCamera);
-    dom.btnToggleVibes?.addEventListener('click', toggleVibePanel);
-    
-    // ==========================================
-    // LOGIC LƯU VÀ KHÔI PHỤC SETTING BẢNG MÀU
-    // ==========================================
-    const saveVibeSettings = () => {
-        if (!dom.useCustomVibe) return;
-        const settings = {
-            c1: dom.color1.value,
-            c2: dom.color2.value,
-            c3: dom.color3.value,
-            enabled: dom.useCustomVibe.checked
-        };
-        localStorage.setItem('locket_vibe_settings', JSON.stringify(settings));
-    };
 
-    const updateCaptionPreview = () => {
-        if (dom.useCustomVibe && dom.useCustomVibe.checked) {
-            const c1 = dom.color1.value, c2 = dom.color2.value, c3 = dom.color3.value;
-            dom.captionOverlay.style.background = `linear-gradient(to bottom, ${c1}, ${c2}, ${c3})`;
-            if(dom.btnToggleVibes) dom.btnToggleVibes.classList.add('active');
-        } else {
-            dom.captionOverlay.style.background = "rgba(30, 30, 30, 0.85)";
-            if(dom.btnToggleVibes) dom.btnToggleVibes.classList.remove('active');
-        }
-        saveVibeSettings(); // Lưu tự động mỗi khi người dùng kéo màu hoặc tích ô
-    };
+    dom.checkAllFriends?.addEventListener('change', () => { document.querySelectorAll('.target-friend').forEach(cb => cb.checked = false); });
+    dom.dynamicFriendsList?.addEventListener('change', (e) => { if(e.target.classList.contains('target-friend') && e.target.checked) dom.checkAllFriends.checked = false; });
 
-    // Khôi phục Setting từ Cache khi vừa mở web
-    try {
-        const savedSettings = localStorage.getItem('locket_vibe_settings');
-        if (savedSettings && dom.useCustomVibe) {
-            const settings = JSON.parse(savedSettings);
-            if (settings.c1) dom.color1.value = settings.c1;
-            if (settings.c2) dom.color2.value = settings.c2;
-            if (settings.c3) dom.color3.value = settings.c3;
-            dom.useCustomVibe.checked = settings.enabled === true;
-        }
-    } catch(e) {
-        console.error("Lỗi đọc cache màu:", e);
-    }
-    
-    // Kích hoạt giao diện màu theo setting vừa load
-    updateCaptionPreview();
-
-    dom.color1?.addEventListener('input', updateCaptionPreview);
-    dom.color2?.addEventListener('input', updateCaptionPreview);
-    dom.color3?.addEventListener('input', updateCaptionPreview);
-    dom.useCustomVibe?.addEventListener('change', updateCaptionPreview);
-
-    // ==========================================
-
-    dom.checkAllFriends?.addEventListener('change', () => {
-        document.querySelectorAll('.target-friend').forEach(cb => cb.checked = false);
-    });
-    dom.dynamicFriendsList?.addEventListener('change', (e) => {
-        if(e.target.classList.contains('target-friend') && e.target.checked) dom.checkAllFriends.checked = false;
-    });
-
-    dom.previewImage?.addEventListener('click', () => {
+    const cancelSend = () => {
         dom.previewImage.style.display = 'none';
+        dom.previewVideo.style.display = 'none';
+        dom.previewVideo.src = "";
         dom.captionOverlay.style.display = 'none';
-        if (dom.customColorPanel) dom.customColorPanel.style.display = 'none';
         dom.sendSheet.style.display = 'none';
         dom.bottomControls.style.display = 'flex';
         currentBlob = null;
-    });
+        currentVideoBlob = null;
+    };
+    
+    dom.previewImage?.addEventListener('click', cancelSend);
+    dom.previewVideo?.addEventListener('click', cancelSend);
 });
