@@ -1,4 +1,4 @@
-// [js/camera.js] - CHUẨN LOCKET: 1:1 VUÔNG, KHÔNG TIẾNG, CAPTION MẶC ĐỊNH
+// [js/camera.js] - CẬP NHẬT GIỚI HẠN QUAY 60S VÀ HIỆU ỨNG CHẠY VIỀN KHUNG CAMERA
 import * as api from './api.js';
 
 let currentStream = null;
@@ -11,6 +11,7 @@ let recordedChunks = [];
 let pressTimer = null;
 let isLongPress = false;
 let isRecordingCanvas = false;
+let recordingStartTime = 0; // Lưu thời gian bắt đầu quay
 
 const getDom = () => ({
     video: document.getElementById('cameraVideo'),
@@ -25,13 +26,15 @@ const getDom = () => ({
     sendSheet: document.getElementById('sendSheet'),
     checkAllFriends: document.getElementById('checkAllFriends'),
     dynamicFriendsList: document.getElementById('dynamicFriendsList'),
-    btnConfirmSend: document.getElementById('btnConfirmSend')
+    btnConfirmSend: document.getElementById('btnConfirmSend'),
+    // DOM viền tiến trình mới
+    btnConfirmSend: document.getElementById('btnConfirmSend'),
+    progressWrapper: document.getElementById('recordingProgressWrapper')
 });
 
 export async function startCamera() {
     try {
         const dom = getDom();
-        // KHÔNG XIN QUYỀN MIC (audio: false) ĐỂ TẮT TIẾNG TRIỆT ĐỂ
         const constraints = { video: { facingMode: currentFacingMode, width: { ideal: 1080 }, height: { ideal: 1080 } }, audio: false };
         currentStream = await navigator.mediaDevices.getUserMedia(constraints);
         dom.video.srcObject = currentStream;
@@ -62,7 +65,7 @@ function transitionToPreview(dom) {
     loadFriendsList(dom);
 }
 
-// 1. CHỤP ẢNH (CROP CHUẨN 1:1 TỪ GIỮA MÀN HÌNH)
+// 1. CHỤP ẢNH (CROP 1:1)
 function capturePhoto() {
     const dom = getDom();
     if (!dom.video.videoWidth) return;
@@ -76,7 +79,6 @@ function capturePhoto() {
     if (size > MAX_DIMENSION) finalSize = MAX_DIMENSION;
 
     dom.canvas.width = finalSize; dom.canvas.height = finalSize;
-    // Cắt phần hình vuông ở giữa video
     dom.canvas.getContext('2d').drawImage(dom.video, startX, startY, size, size, 0, 0, finalSize, finalSize);
     dom.canvas.toBlob((blob) => { currentBlob = blob; }, 'image/jpeg', 0.85);
 
@@ -88,14 +90,25 @@ function capturePhoto() {
     transitionToPreview(dom);
 }
 
-// 2. QUAY VIDEO (RECORD CANVAS 1:1 - KHÔNG TIẾNG)
+// 2. QUAY VIDEO (CROP 1:1, TỐI ĐA 60S, CHẠY VIỀN VÀNG VÂY QUANH)
 function startRecordingVideo() {
     if (!currentStream) return;
     const dom = getDom();
     recordedChunks = [];
     isRecordingCanvas = true;
+    recordingStartTime = Date.now();
 
-    // TẠO CANVAS 1:1 ĐỂ GHI HÌNH
+    // Đổi màu viền nút đỏ 
+    dom.captureBtn.style.transform = 'scale(1.2)'; 
+    dom.captureBtn.style.backgroundColor = 'rgba(255, 68, 68, 0.5)';
+    dom.captureBtn.style.borderColor = '#ff4444'; 
+
+    // Hiển thị khung viền bọc ngoài và reset tiến trình
+    if (dom.progressWrapper) {
+        dom.progressWrapper.style.display = 'block';
+        dom.progressWrapper.style.setProperty('--progress', '0%');
+    }
+
     const recordCanvas = document.createElement('canvas');
     const size = Math.min(dom.video.videoWidth, dom.video.videoHeight);
     recordCanvas.width = size; recordCanvas.height = size;
@@ -103,25 +116,35 @@ function startRecordingVideo() {
     const startX = (dom.video.videoWidth - size) / 2;
     const startY = (dom.video.videoHeight - size) / 2;
 
-    // Vòng lặp liên tục vẽ video lên canvas 1:1
     function drawFrame() {
         if (!isRecordingCanvas) return;
         ctx.drawImage(dom.video, startX, startY, size, size, 0, 0, size, size);
+        
+        const elapsed = Date.now() - recordingStartTime;
+        const maxDuration = 15000; // [CẬP NHẬT] Đã giảm xuống đúng 30 giây
+
+        if (elapsed >= maxDuration) {
+            stopRecordingVideo();
+            return;
+        }
+
+        // Cập nhật phần trăm chạy viền realtime (gắn vào CSS Variable)
+        if (dom.progressWrapper) {
+            const percentage = Math.min(elapsed / maxDuration, 1);
+            dom.progressWrapper.style.setProperty('--progress', `${percentage * 100}%`);
+        }
+
         requestAnimationFrame(drawFrame);
     }
     drawFrame();
 
-    // Thu lại luồng hình ảnh từ Canvas (30 FPS) -> Tự động vô hiệu hóa âm thanh
     const canvasStream = recordCanvas.captureStream(30);
-
     mediaRecorder = new MediaRecorder(canvasStream, { mimeType: 'video/webm' });
     mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
     mediaRecorder.onstop = () => {
-        isRecordingCanvas = false; // Dừng vòng lặp vẽ
-        // Chuyển blob thành mp4 để Firebase nhận diện
+        isRecordingCanvas = false;
         currentVideoBlob = new Blob(recordedChunks, { type: 'video/mp4' });
 
-        // Lấy Thumbnail 1:1 từ chính canvas vừa record
         dom.canvas.width = size; dom.canvas.height = size;
         dom.canvas.getContext('2d').drawImage(recordCanvas, 0, 0, size, size);
         dom.canvas.toBlob((blob) => { currentBlob = blob; }, 'image/jpeg', 0.85);
@@ -134,21 +157,24 @@ function startRecordingVideo() {
     };
     
     mediaRecorder.start();
-    
-    dom.captureBtn.style.transform = 'scale(1.3)';
-    dom.captureBtn.style.backgroundColor = 'rgba(255, 68, 68, 0.5)';
-    dom.captureBtn.style.border = '4px solid #ff4444';
 }
 
 function stopRecordingVideo() {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
     const dom = getDom();
+    // Ẩn viền đi khi ngừng quay
+    if (dom.progressWrapper) dom.progressWrapper.style.display = 'none';
+    isRecordingCanvas = false;
+
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+    }
+    
     dom.captureBtn.style.transform = '';
     dom.captureBtn.style.backgroundColor = '';
-    dom.captureBtn.style.border = '';
+    dom.captureBtn.style.borderColor = '';
 }
 
-// 3. XÁC NHẬN GỬI 
+// 3. XÁC NHẬN GỬI (PAYLOAD CAPTION CHUẨN MỚI)
 async function confirmSendMoment() {
     const dom = getDom();
     if (!currentBlob && !currentVideoBlob) return;
@@ -160,26 +186,17 @@ async function confirmSendMoment() {
         if (recipients.length === 0) return alert("Vui lòng chọn ít nhất 1 người để gửi!");
     }
 
-    // [BÊ ĐÚNG PAYLOAD CHUẨN VÀO ĐÂY]
     let overlaysPayload = null;
     if (caption) {
         overlaysPayload = [{
             "data": {
-                "background": {
-                    "material_blur": "ultra_thin",
-                    "colors": []
-                },
+                "background": { "material_blur": "ultra_thin", "colors": [] },
                 "text_color": "#FFFFFFE6",
                 "type": "standard",
-                "max_lines": {
-                    "@type": "type.googleapis.com/google.protobuf.Int64Value",
-                    "value": "4"
-                },
+                "max_lines": { "@type": "type.googleapis.com/google.protobuf.Int64Value", "value": "4" },
                 "text": caption
             },
-            "overlay_id": "caption:standard",
-            "alt_text": caption,
-            "overlay_type": "caption"
+            "overlay_id": "caption:standard", "alt_text": caption, "overlay_type": "caption"
         }];
     }
 
@@ -218,8 +235,6 @@ async function confirmSendMoment() {
         const randomMd5 = [...Array(32)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
         
         updateProgress(90, "🚀 Đang gửi bài đăng lên Locket...");
-        
-        // Ném cả nội dung caption lẫn định dạng chuẩn lên API
         await api.postMoment(thumbnailUrl, randomMd5, caption, recipients, overlaysPayload, videoUrl);
 
         updateProgress(100, "✅ Đã gửi thành công!");
