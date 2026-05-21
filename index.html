@@ -20,14 +20,19 @@
             <button class="top-chat-btn">💬</button>
         </div>
 
-        <div class="viewfinder-container">
-            <video id="cameraVideo" class="camera-video" autoplay playsinline></video>
-            <img id="previewImage" class="preview-image" style="display: none;">
-            <video id="previewVideo" class="preview-image" autoplay loop muted playsinline style="display: none;"></video>
+        <div style="position: relative; width: 100%; margin-bottom: 20px;">
             
-            <div id="captionOverlay" class="caption-overlay" style="display: none; background: rgba(30, 30, 30, 0.85);">
-                <input type="text" id="modalCaptionInput" placeholder="Thêm tin nhắn..." autocomplete="off">
-                <button id="btnConfirmSend" class="btn-send-moment">➤</button>
+            <div id="recordingProgressWrapper" style="position: absolute; top: -3px; left: -3px; right: -3px; bottom: -3px; border-radius: 43px; background: conic-gradient(#FFD700 var(--progress, 0%), transparent 0); z-index: 0; display: none;"></div>
+
+            <div class="viewfinder-container" style="margin-bottom: 0; position: relative; z-index: 1;">
+                <video id="cameraVideo" class="camera-video" autoplay playsinline></video>
+                <img id="previewImage" class="preview-image" style="display: none;">
+                <video id="previewVideo" class="preview-image" autoplay loop muted playsinline style="display: none;"></video>
+                
+                <div id="captionOverlay" class="caption-overlay" style="display: none; background: rgba(30, 30, 30, 0.85);">
+                    <input type="text" id="modalCaptionInput" placeholder="Thêm tin nhắn..." autocomplete="off">
+                    <button id="btnConfirmSend" class="btn-send-moment">➤</button>
+                </div>
             </div>
         </div>
 
