@@ -23,24 +23,10 @@
         <div class="viewfinder-container">
             <video id="cameraVideo" class="camera-video" autoplay playsinline></video>
             <img id="previewImage" class="preview-image" style="display: none;">
+            <video id="previewVideo" class="preview-image" autoplay loop muted playsinline style="display: none;"></video>
             
-            <div id="customColorPanel" class="custom-color-panel" style="display: none;">
-                <div style="display: flex; gap: 15px; margin-bottom: 10px; justify-content: center;">
-                    <input type="color" id="vibeColor1" class="vibe-color-input" value="#FF007F">
-                    <input type="color" id="vibeColor2" class="vibe-color-input" value="#7F00FF">
-                    <input type="color" id="vibeColor3" class="vibe-color-input" value="#00FFFF">
-                </div>
-                <label style="display: flex; align-items: center; justify-content: center; gap: 8px; color: #fff; font-size: 14px; cursor: pointer;">
-                    <input type="checkbox" id="useCustomVibe" style="width: 18px; height: 18px; margin: 0; accent-color: #FFD700;"> 
-                    Bật nền Gradient
-                </label>
-            </div>
-
-            <div id="captionOverlay" class="caption-overlay" style="display: none;">
-                
-                <button id="btnToggleVibes" class="btn-toggle-vibes" style="display: none;">Aa</button>
-                
-                <input type="text" id="modalCaptionInput" placeholder="Thêm tin nhắn (có thể để trống)..." autocomplete="off">
+            <div id="captionOverlay" class="caption-overlay" style="display: none; background: rgba(30, 30, 30, 0.85);">
+                <input type="text" id="modalCaptionInput" placeholder="Thêm tin nhắn..." autocomplete="off">
                 <button id="btnConfirmSend" class="btn-send-moment">➤</button>
             </div>
         </div>
