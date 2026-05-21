@@ -160,6 +160,29 @@ async function confirmSendMoment() {
         if (recipients.length === 0) return alert("Vui lòng chọn ít nhất 1 người để gửi!");
     }
 
+    // [BÊ ĐÚNG PAYLOAD CHUẨN VÀO ĐÂY]
+    let overlaysPayload = null;
+    if (caption) {
+        overlaysPayload = [{
+            "data": {
+                "background": {
+                    "material_blur": "ultra_thin",
+                    "colors": []
+                },
+                "text_color": "#FFFFFFE6",
+                "type": "standard",
+                "max_lines": {
+                    "@type": "type.googleapis.com/google.protobuf.Int64Value",
+                    "value": "4"
+                },
+                "text": caption
+            },
+            "overlay_id": "caption:standard",
+            "alt_text": caption,
+            "overlay_type": "caption"
+        }];
+    }
+
     const progressOverlay = document.getElementById('uploadProgressOverlay');
     const progressBar = document.getElementById('uploadProgressBar');
     const progressText = document.getElementById('uploadStatusText');
@@ -196,9 +219,8 @@ async function confirmSendMoment() {
         
         updateProgress(90, "🚀 Đang gửi bài đăng lên Locket...");
         
-        // TRỞ VỀ NGUYÊN THỦY: Không dùng overlays (truyền null), chỉ truyền caption text thuần.
-        // Locket sẽ tự động chuyển đổi và hiển thị đúng trên mọi máy.
-        await api.postMoment(thumbnailUrl, randomMd5, caption, recipients, null, videoUrl);
+        // Ném cả nội dung caption lẫn định dạng chuẩn lên API
+        await api.postMoment(thumbnailUrl, randomMd5, caption, recipients, overlaysPayload, videoUrl);
 
         updateProgress(100, "✅ Đã gửi thành công!");
         
