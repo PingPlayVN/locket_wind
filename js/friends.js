@@ -40,7 +40,7 @@ export function initFriendsModule() {
             const badgeHtml = isGold ? `<span style="color:#FFD700; font-size:11px; font-weight:bold; background: rgba(255,215,0,0.1); padding: 2px 6px; border-radius: 4px; margin-left:6px;">💎 GOLD</span>` : '';
             const avatarBorder = isGold ? 'border: 2px solid #FFD700;' : 'border: 2px solid #444;';
 
-            // Đổ giao diện Mini Card (Đã thêm nút Kết Bạn)
+            // Đổ giao diện Mini Card (Nút Kết Bạn đã bị vô hiệu hóa)
             dom.searchResult.innerHTML = `
                 <div class="friend-result-card">
                     <img src="${avatar}" class="friend-avatar" style="${avatarBorder}">
@@ -49,27 +49,14 @@ export function initFriendsModule() {
                         <div class="friend-username">@${username}</div>
                         <div class="friend-uid">UID: ${user.uid}</div>
                     </div>
-                    <button id="btnAddFriend" class="btn-add-friend">➕ Kết Bạn</button>
+                    <button id="btnAddFriend" class="btn-add-friend" style="background: #555; color: #888; cursor: not-allowed;">Tính Năng Đã Khóa</button>
                 </div>
             `;
 
             // --- LẮNG NGHE SỰ KIỆN CLICK NÚT KẾT BẠN ---
             const btnAdd = document.getElementById('btnAddFriend');
             btnAdd.addEventListener('click', async () => {
-                btnAdd.disabled = true;
-                btnAdd.innerText = "⏳ Đang gửi...";
-                
-                try {
-                    await api.addFriend(user.uid, user.celebrity === true);
-                    // Đổi giao diện nút khi thành công
-                    btnAdd.innerText = "✅ Đã gửi";
-                    btnAdd.style.background = "#00e676";
-                    btnAdd.style.color = "#004d40";
-                } catch (err) {
-                    btnAdd.innerText = "❌ Lỗi";
-                    btnAdd.disabled = false;
-                    alert("Không thể gửi kết bạn: " + err.message);
-                }
+                alert("Tính năng gửi kết bạn đang được tạm thời vô hiệu hóa!");
             });
 
         } catch (error) {
