@@ -1,0 +1,23 @@
+/* =========================================
+   LOCKET DIO CAPTION THEMES (UI PREVIEW)
+   ========================================= */
+.caption-style-btn {
+    background: #2c2c2e; color: #aaa; border: 2px solid transparent; border-radius: 20px; 
+    padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.2s;
+}
+.caption-style-btn.active { border: 2px solid #fff; transform: scale(1.05); }
+
+.caption-overlay-pill { transition: all 0.3s ease; }
+
+/* =========================================
+   GIF BACKGROUND THEMES & ICONS
+   ========================================= */
+/* Style cho nút Icon / GIF Sticker */
+.caption-icon-btn {
+    background: #2c2c2e; color: #aaa; border: 2px solid transparent; border-radius: 15px; 
+    padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.2s;
+    display: flex; align-items: center; gap: 6px;
+}
+.caption-icon-btn.active { border: 2px solid #FFD700; color: #FFD700; background: #1c1c1e; }
+/* Chỉnh size hình ảnh GIF/Icon bên trong nút */
+.caption-icon-btn img { width: 22px; height: 22px; object-fit: cover; border-radius: 4px; }

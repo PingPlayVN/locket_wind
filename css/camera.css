@@ -308,31 +308,6 @@ body {
 .btn-post-send:active { transform: scale(0.9); background: #333; }
 .btn-post-send svg { margin-right: 2px; margin-top: 2px; }
 
-/* =========================================
-   LOCKET DIO CAPTION THEMES (UI PREVIEW)
-   ========================================= */
-.caption-style-btn {
-    background: #2c2c2e; color: #aaa; border: 2px solid transparent; border-radius: 20px; 
-    padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.2s;
-}
-.caption-style-btn.active { border: 2px solid #fff; transform: scale(1.05); }
-
-.caption-overlay-pill { transition: all 0.3s ease; }
-
-/* Trong suốt */
-.caption-overlay-pill.theme-transparent { background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
-.caption-overlay-pill.theme-transparent input { text-shadow: 1px 1px 4px rgba(0,0,0,0.9); }
-
-/* Locket Gold */
-.caption-overlay-pill.theme-locket_gold { background: linear-gradient(45deg, #FFD700, #FF8C00); border: 2px solid #FFF; backdrop-filter: none; }
-.caption-overlay-pill.theme-locket_gold input { color: #000; font-weight: 800; text-shadow: none; }
-.caption-overlay-pill.theme-locket_gold input::placeholder { color: rgba(0,0,0,0.6); }
-
-/* Ocean Blue */
-.caption-overlay-pill.theme-ocean_blue { background: linear-gradient(45deg, #00c6ff, #0072ff); backdrop-filter: none; border: 1px solid #fff;}
-
-/* Love Pink */
-.caption-overlay-pill.theme-love_pink { background: linear-gradient(45deg, #ff758c, #ff7eb3); backdrop-filter: none; }
-
-/* Dark Mode */
-.caption-overlay-pill.theme-dark_mode { background: rgba(0, 0, 0, 0.85); backdrop-filter: none; border: 1px solid #444; }
+/* Ẩn thanh cuộn cho các danh sách danh mục */
+.caption-style-list::-webkit-scrollbar { display: none; }
+#captionThemesContainer::-webkit-scrollbar { display: none; }
