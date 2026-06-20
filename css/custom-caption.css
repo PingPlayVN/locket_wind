@@ -1,0 +1,145 @@
+/* css/custom-caption.css */
+
+@keyframes customCaptionSlideUp {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(28px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.custom-caption-sheet.is-opening {
+    animation: customCaptionSlideUp 0.28s ease-out both;
+}
+
+.caption-custom-preview {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+}
+
+.caption-custom-preview #localPreviewText {
+    max-width: 240px;
+}
+
+.giphy-search-wrapper {
+    margin-bottom: 15px;
+}
+
+.giphy-search-wrapper input {
+    width: 100%;
+    padding: 12px 15px;
+    background: #2c2c2e;
+    border: 1px solid #444;
+    border-radius: 12px;
+    color: white;
+    font-size: 15px;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.giphy-search-wrapper input:focus {
+    border-color: #FFD700;
+}
+
+/* Lưới hiển thị GIF - Đổi thành 5 cột */
+.giphy-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* Cắt ngang 5 ô */
+    gap: 6px; /* Thu hẹp khoảng cách giữa các ô */
+    overflow-y: auto;
+    flex: 1; 
+    padding-bottom: 10px;
+    align-content: start; /* Dồn ảnh lên trên */
+}
+
+/* Từng ô GIF - Ép tỷ lệ 1:1 */
+.giphy-item {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1; /* Cốt lõi: Ép thành hình vuông bất chấp kích thước gốc */
+    object-fit: cover;   /* Đảm bảo hình không bị bóp méo */
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.1s;
+    background: #222;
+}
+
+.giphy-item:active {
+    transform: scale(0.9); /* Hiệu ứng bấm nảy nảy */
+}
+
+.giphy-item.selected {
+    border: 3px solid #FFD700;
+}
+
+/* Custom Controls (Text & Color Pickers) */
+.custom-controls-wrapper input[type="text"] {
+    width: 100%;
+    padding: 12px 15px;
+    background: #2c2c2e;
+    border: 1px solid #444;
+    border-radius: 12px;
+    color: white;
+    font-size: 14px;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.custom-controls-wrapper input[type="text"]:focus {
+    border-color: #FFD700;
+}
+
+/* Đè thư viện Coloris cho hiển thị Full-width */
+.clr-field {
+    width: 100%;
+}
+.clr-field button {
+    border-radius: 8px;
+    width: 28px;
+    height: 28px;
+    right: 8px;
+}
+
+/* Giao diện dòng nhập Màu Nền động */
+.bg-color-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bg-color-row .clr-field {
+    flex: 1;
+}
+
+.btn-remove-color {
+    background: #ff4444;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    width: 36px;
+    height: 42px; /* Đồng bộ chiều cao với input Coloris */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-weight: bold;
+    flex-shrink: 0;
+    transition: opacity 0.2s;
+}
+
+.btn-remove-color:disabled {
+    background: #444;
+    color: #777;
+    cursor: not-allowed;
+}
+
+.btn-remove-color:active:not(:disabled) {
+    opacity: 0.7;
+}
+
+#btnSearchGiphy:active {
+    background: #FFD700 !important;
+    color: black !important;
+}
