@@ -45,6 +45,8 @@ dom.btnLogin.addEventListener('click', async () => {
     try {
         await api.login(email, password);
         
+        localStorage.setItem('locket_session', JSON.stringify(api.session));
+
         dom.loginModal.classList.remove('active');
         camera.startCamera();
         friends.initFriendsModule();
@@ -80,3 +82,36 @@ async function loadProfileData() {
         dom.statusMessage.style.color = "#ff1744";
     }
 }
+
+// ==========================================
+// AUTO LOGIN: KIỂM TRA PHIÊN KHI MỞ APP
+// ==========================================
+document.addEventListener('DOMContentLoaded', async () => {
+    const savedSession = localStorage.getItem('locket_session');
+    
+    if (savedSession) {
+        try {
+            // 1. Phục hồi dữ liệu token vào biến của api.js
+            const parsedSession = JSON.parse(savedSession);
+            api.session.localId = parsedSession.localId;
+            api.session.idToken = parsedSession.idToken;
+
+            // 2. Thử gọi API lấy profile để kiểm tra token còn "sống" không
+            await api.fetchUserProfile();
+
+            // 3. Nếu không lỗi (token hợp lệ) -> Bỏ qua Login, vào thẳng App
+            dom.loginModal.classList.remove('active');
+            camera.startCamera();
+            friends.initFriendsModule();
+            loadProfileData(); 
+            
+        } catch (error) {
+            // 4. Nếu lỗi (Token hết hạn/bị đổi pass) -> Xóa token rác, bắt đăng nhập lại
+            console.warn("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
+            localStorage.removeItem('locket_session');
+            api.session.localId = "";
+            api.session.idToken = "";
+            dom.loginModal.classList.add('active'); // Hiện lại bảng đăng nhập
+        }
+    }
+});
